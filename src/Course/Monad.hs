@@ -36,8 +36,8 @@ instance Monad ExactlyOne where
     (a -> ExactlyOne b)
     -> ExactlyOne a
     -> ExactlyOne b
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance ExactlyOne"
+  (=<<) f (ExactlyOne a) = f a
+--    error "todo: Course.Monad (=<<)#instance ExactlyOne"
 
 -- | Binds a function on a List.
 --
@@ -48,8 +48,8 @@ instance Monad List where
     (a -> List b)
     -> List a
     -> List b
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance List"
+  (=<<) = flatMap
+--    error "todo: Course.Monad (=<<)#instance List"
 
 -- | Binds a function on an Optional.
 --
@@ -60,8 +60,8 @@ instance Monad Optional where
     (a -> Optional b)
     -> Optional a
     -> Optional b
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance Optional"
+  (=<<) = bindOptional
+--    error "todo: Course.Monad (=<<)#instance Optional"
 
 -- | Binds a function on the reader ((->) t).
 --
@@ -72,8 +72,8 @@ instance Monad ((->) t) where
     (a -> ((->) t b))
     -> ((->) t a)
     -> ((->) t b)
-  (=<<) =
-    error "todo: Course.Monad (=<<)#instance ((->) t)"
+  (=<<) f g x = f (g x) x
+	  --error "todo: Course.Monad (=<<)#instance ((->) t)"
 
 -- | Witness that all things with (=<<) and (<$>) also have (<*>).
 --
@@ -111,9 +111,20 @@ instance Monad ((->) t) where
   f (a -> b)
   -> f a
   -> f b
-(<**>) =
-  error "todo: Course.Monad#(<**>)"
+--(<**>) f x = (y ->  =<< f) <$> x
+--(<**>) g a = (\a1 -> (\g1 -> g1 a1) <$> g) =<< a
+(<**>) mf ma = (\f -> f <$> ma) =<< mf
+--  error "todo: Course.Monad#(<**>)"
 
+--f g = g 1
+-- so we need h :: f (a -> b) -> (a -> b)
+-- so we need i :: f (a -> b) -> a ->  f bi
+--
+-- we have f (a -> b), f a
+-- (a -> f b) -> f a -> f b
+-- (a -> b) -> f a -> f b
+-- (a -> b) -> f (a -> b) -> f b
+-- we need f b
 infixl 4 <**>
 
 -- | Flattens a combined structure to a single structure.
@@ -133,8 +144,8 @@ join ::
   Monad f =>
   f (f a)
   -> f a
-join =
-  error "todo: Course.Monad#join"
+join mma = id =<< mma
+--  error "todo: Course.Monad#join"
 
 -- | Implement a flipped version of @(=<<)@, however, use only
 -- @join@ and @(<$>)@.
@@ -147,8 +158,8 @@ join =
   f a
   -> (a -> f b)
   -> f b
-(>>=) =
-  error "todo: Course.Monad#(>>=)"
+(>>=) ma f = join $ (f <$> ma)
+--  error "todo: Course.Monad#(>>=)"
 
 infixl 1 >>=
 
@@ -163,8 +174,8 @@ infixl 1 >>=
   -> (a -> f b)
   -> a
   -> f c
-(<=<) =
-  error "todo: Course.Monad#(<=<)"
+(<=<) mf mg a = mf =<< mg a
+--  error "todo: Course.Monad#(<=<)"
 
 infixr 1 <=<
 
